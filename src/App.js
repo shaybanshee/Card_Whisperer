@@ -14,9 +14,14 @@ export default class App extends Component {
       bearerToken: [],
       identifiedAs: '',
       initialTokenTime: null,
+      mlresults: {
+        payload: []
+      }
     }
     this.getJWTToken=this.getJWTToken.bind(this);
     this.takePicture = this.takePicture.bind(this);
+    this.translator = this.translator.bind(this);
+    this.displayAnswer = this.displayAnswer.bind(this);
   }
   
   takePicture(camera)
@@ -98,30 +103,41 @@ export default class App extends Component {
         data: payload    
       })
       .then((response) => {
-        console.log(response.data);
+        this.setState({mlresults: response.data})
+        
+      })
+      .then(() => {
+        this.translator()
+        
       })
       .catch((error) =>{
         console.log(error.response)
       })
+      
   }
+  translator(){
+    console.log("translating")
+    this.state.mlresults.payload.map((element)=>{
+      console.log("anthing")
+      this.displayAnswer(element.displayName)
+      
+    })
+  }
+
   
   displayAnswer(identifiedImage){
+    console.log("display answer");
+    
 
-    // Dismiss the acitivty indicator
-    this.setState((prevState, props) => ({
-        identifiedAs:identifiedImage,
-        loading:false
-    }));
+    //return string so we don't have to use alert
 
 // Show an alert with the answer on
      Alert.alert(
-        this.state.identifiedAs,
-        '',
-        { cancelable: false }
+        identifiedImage
+        //{ cancelable: false }
     )
 
-    // Resume the preview
-    //this.camera.resumePreview();
+    
 }
 
 
@@ -131,9 +147,9 @@ export default class App extends Component {
       <View style={styles.container}>
         <Text style={styles.welcome}>Welcome to Card Whisperer {this.state.bearerToken.access_token}</Text>
         <RNCamera ref={ref => {this.camera = ref;}} style={styles.preview}>
-          <ActivityIndicator size="large" style={styles.loadingIndicator} color="#fff" animating={this.state.loading}/>
-          <CameraButton buttonDisabled={this.state.loading} onClick={() => {this.takePicture(this.camera)}}/>
+          <CameraButton onClick={() => {this.takePicture(this.camera)}}/>
         </RNCamera>
+        <Text>//display()//</Text>
       </View>
     );
   }
