@@ -3,6 +3,7 @@ import {StyleSheet, Text, View, Dimensions, ActivityIndicator, Alert} from 'reac
 import { RNCamera } from 'react-native-camera';
 import CameraButton from './CameraButton';
 import axios from 'axios';
+
 export default class App extends Component {
   constructor(props)
   {
@@ -15,13 +16,12 @@ export default class App extends Component {
       initialTokenTime: null,
     }
     this.getJWTToken=this.getJWTToken.bind(this);
-    console.log("Hello")
+    this.takePicture = this.takePicture.bind(this);
   }
   
-  takePicture()
+  takePicture(camera)
   {
-    console.log("start of take picture")
-    this.camera.pausePreview();
+    //camera.pausePreview(); // there is curretly a bug with pausePreview which causes takePictureAsync to fail if you call it on Android pre taking a picture
     this.setState({loading: true});
 
     //Set the options for the camera
@@ -30,7 +30,7 @@ export default class App extends Component {
     };
 
     // Get the base64 version of the image
-    this.camera.takePictureAsync(options)
+    camera.takePictureAsync(options)
       .then(data => {
         // data is your base64 string
         console.log("taking picture")
@@ -43,10 +43,11 @@ export default class App extends Component {
         
       })
       .finally(() => {
-        this.camera.resumePreview();
+        //camera.resumePreview();
         this.setState({loading: false}) // this will make the button clickable again
       })
   }
+
   componentDidMount(){
     //onload
     this.getJWTToken()
@@ -78,6 +79,7 @@ export default class App extends Component {
   }
 
   identifyImage(imageData){
+    console.log("identifying image!")
     const payload =  {
         "payload": {
           "image": {
@@ -119,7 +121,7 @@ export default class App extends Component {
     )
 
     // Resume the preview
-    this.camera.resumePreview();
+    //this.camera.resumePreview();
 }
 
 
@@ -130,7 +132,7 @@ export default class App extends Component {
         <Text style={styles.welcome}>Welcome to Card Whisperer {this.state.bearerToken.access_token}</Text>
         <RNCamera ref={ref => {this.camera = ref;}} style={styles.preview}>
           <ActivityIndicator size="large" style={styles.loadingIndicator} color="#fff" animating={this.state.loading}/>
-          <CameraButton buttonDisabled={this.state.loading} onClick={this.takePicture.bind(this)}/>
+          <CameraButton buttonDisabled={this.state.loading} onClick={() => {this.takePicture(this.camera)}}/>
         </RNCamera>
       </View>
     );
