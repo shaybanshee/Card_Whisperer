@@ -1,12 +1,12 @@
 import React, { Component }  from 'react';
-import { StyleSheet, Button, TouchableHighlight } from 'react-native';
+import { StyleSheet, Image, TouchableHighlight, Dimensions } from 'react-native';
 
 export default class CameraButton extends Component {
     render()
     {
         return (
-        <TouchableHighlight style={styles.captureButton} disabled={this.props.buttonDisabled}>
-            <Button onPress={this.props.onClick} disabled={this.props.buttonDisabled} title="Capture" accessibilityLabel="Learn more about this button"/>
+        <TouchableHighlight onPress={this.props.onClick}  >
+            <Image style={styles.captureButton} accessible={true} accessibilityLabel="Take picture"/>
         </TouchableHighlight>
         );
     }
@@ -14,9 +14,11 @@ export default class CameraButton extends Component {
 
 const styles = StyleSheet.create({
     captureButton: {
-        marginBottom:30,
-        width:160,
-        borderRadius:10,
-        backgroundColor: "white",
+      flex: 1,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      height: Dimensions.get('window').height,
+      width: Dimensions.get('window').width,
+      backgroundColor: 'rgba(0,0,0,0)'
     }
 });
