@@ -115,17 +115,16 @@ export default class App extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>Welcome to Card Whisperer {this.state.bearerToken.access_token}</Text>
+      <Text style={styles.welcome}accessible={true}>{this.state.mlresults.payload.map((element)=>{
+          return (
+        
+          <Text>{element.displayName}</Text>
+        
+        )})}</Text>
         <RNCamera ref={ref => {this.camera = ref;}} style={styles.preview}>
           <CameraButton onClick={() => {this.takePicture(this.camera)}}/>
         </RNCamera>
-        <View>
-        {this.state.mlresults.payload.map((element)=>{
-          
-        {
-          <Text>{element.displayName}</Text>
-        }
-        })}</View>
+        
 
       </View>
     );
