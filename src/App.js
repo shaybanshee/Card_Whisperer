@@ -1,12 +1,12 @@
-import React, {Component} from 'react';
-import {StyleSheet, Text, View, Dimensions, ActivityIndicator, Alert} from 'react-native';
+import React, { Component } from 'react';
+import { StyleSheet, Text, View, Dimensions, } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import CameraButton from './CameraButton';
 import axios from 'axios';
+import Tts from 'react-native-tts';
 
 export default class App extends Component {
-  constructor(props)
-  {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -16,17 +16,18 @@ export default class App extends Component {
       initialTokenTime: null,
       mlresults: {
         payload: ["waiting for picture"]
-      }
+      },
+      ADN: [],
     }
-    this.getJWTToken=this.getJWTToken.bind(this);
+    this.getJWTToken = this.getJWTToken.bind(this);
     this.takePicture = this.takePicture.bind(this);
-    
+    this.speakResults = this.speakResults.bind(this);
+
   }
-  
-  takePicture(camera)
-  {
+
+  takePicture(camera) {
     //camera.pausePreview(); // there is curretly a bug with pausePreview which causes takePictureAsync to fail if you call it on Android pre taking a picture
-    this.setState({loading: true});
+    this.setState({ loading: true });
 
     //Set the options for the camera
     const options = {
@@ -39,98 +40,110 @@ export default class App extends Component {
         // data is your base64 string
         console.log("taking picture")
         this.identifyImage(data.base64);
-        
+
       })
       .catch((e) => {
         // e is the error code
         console.log(e)
-        
+
       })
       .finally(() => {
         //camera.resumePreview();
-        this.setState({loading: false}) // this will make the button clickable again
+        this.setState({ loading: false }) // this will make the button clickable again
       })
   }
 
-  componentDidMount(){
+  componentDidMount() {
     //onload
     this.getJWTToken()
-    this.setState({initialTokenTime: Date.now()})
+    this.setState({ initialTokenTime: Date.now() })
   }
   getJWTToken() {
     //const assertion = ""
     axios
-    .get("http://192.168.1.126:8081")
-    .then((response) => {
-      const assertion = response.data
-      console.log(response)
-      axios({
-        method: 'post',
-        url: "https://www.googleapis.com/oauth2/v4/token",
-        data: {
-          "grant_type" : "urn:ietf:params:oauth:grant-type:jwt-bearer",
-          "assertion": assertion
-        }
-      })
-        .then((response) => {
-          this.setState({bearerToken: response.data});      
+      .get("http://192.168.1.126:8081")
+      .then((response) => {
+        const assertion = response.data
+        console.log(response)
+        axios({
+          method: 'post',
+          url: "https://www.googleapis.com/oauth2/v4/token",
+          data: {
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "assertion": assertion
+          }
         })
-    })
-    .catch((error) => {
-      console.log(error)
-    })
-    
+          .then((response) => {
+            this.setState({ bearerToken: response.data });
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+
   }
 
-  identifyImage(imageData){
+  identifyImage(imageData) {
     console.log("identifying image!")
-    const payload =  {
-        "payload": {
-          "image": {
-            "imageBytes": imageData
-          },
-        }
+    const payload = {
+      "payload": {
+        "image": {
+          "imageBytes": imageData
+        },
+      }
     };
 
-      axios({
-        method: 'post',
-        url: "https://automl.googleapis.com/v1beta1/projects/totemic-ground-219514/locations/us-central1/models/ICN6280896592581654906:predict",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + this.state.bearerToken.access_token 
-        }, 
-        data: payload    
-      })
+    axios({
+      method: 'post',
+      url: "https://automl.googleapis.com/v1beta1/projects/totemic-ground-219514/locations/us-central1/models/ICN6280896592581654906:predict",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + this.state.bearerToken.access_token
+      },
+      data: payload
+    })
       .then((response) => {
-        this.setState({mlresults: response.data})
-        
+        this.setState({ mlresults: response.data })
+
       })
-      .catch((error) =>{
+      .then(() => {
+        this.setState({ ADN: response.data })
+
+      })
+      .catch((error) => {
         console.log(error.response)
       })
-      
   }
-  
+  speakResults(){
+    let i=0
+    this.state.mlresults.payload.map((element) => {
+      if (element.classification.score > 0.9){
+        this.state.ADN[i] = element.displayName
+      }
+      if (this.state.ADN.length() >= 3){
+        this.state.ADN.map((element) => {
+          Tts.speak(element)
+        })
+      }
+    })
+  }
+
+
+
+
 
   render() {
     return (
       <View style={styles.container}>
-      <Text style={styles.welcome}accessible={true}>{this.state.mlresults.payload.map((element)=>{
-          return (
-        
-          <Text>{element.displayName}</Text>
-        
-        )})}</Text>
-        <RNCamera ref={ref => {this.camera = ref;}} style={styles.preview}>
-          <CameraButton onClick={() => {this.takePicture(this.camera)}}/>
+        <Text style={styles.welcome} accessible={true}>{element.displayName}</Text>
+        <RNCamera ref={ref => { this.camera = ref; }} style={styles.preview}>
+          <CameraButton onClick={() => { this.takePicture(this.camera) }} />
         </RNCamera>
-        
-
       </View>
     );
   }
-
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -156,10 +169,12 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
   },
   loadingIndicator: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   }
-
 });
+
+
+
 
