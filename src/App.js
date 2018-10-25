@@ -17,7 +17,7 @@ export default class App extends Component {
       mlresults: {
         payload: ["waiting for picture"]
       },
-      ADN: [],
+      ADN: []
     }
     this.getJWTToken = this.getJWTToken.bind(this);
     this.takePicture = this.takePicture.bind(this);
@@ -107,35 +107,38 @@ export default class App extends Component {
 
       })
       .then(() => {
-        this.setState({ ADN: response.data })
+        this.speakResults()
 
       })
       .catch((error) => {
+
         console.log(error.response)
       })
   }
-  speakResults(){
-    let i=0
-    this.state.mlresults.payload.map((element) => {
-      if (element.classification.score > 0.9){
-        this.state.ADN[i] = element.displayName
-      }
-      if (this.state.ADN.length() >= 3){
-        this.state.ADN.map((element) => {
-          Tts.speak(element)
-        })
-      }
-    })
+  speakResults() {
+    console.log("speak those results")
+    
+    this.setState({ADN:this.state.mlresults.payload.filter((element) =>
+      element.classification.score > 0.9})
+
+    if (ADN.length() >= 3) {
+      ADN.map((element) => {
+        Tts.speak(element)
+      })
+    }
+    this.setState({ disName: ADN })
+
+
   }
-
-
-
 
 
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome} accessible={true}>{element.displayName}</Text>
+        <Text style={styles.welcome} accessible={true}>
+          {this.state.disName((element) => {
+            { element }
+          })}</Text>
         <RNCamera ref={ref => { this.camera = ref; }} style={styles.preview}>
           <CameraButton onClick={() => { this.takePicture(this.camera) }} />
         </RNCamera>
