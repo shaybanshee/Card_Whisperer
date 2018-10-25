@@ -15,13 +15,12 @@ export default class App extends Component {
       identifiedAs: '',
       initialTokenTime: null,
       mlresults: {
-        payload: []
+        payload: ["waiting for picture"]
       }
     }
     this.getJWTToken=this.getJWTToken.bind(this);
     this.takePicture = this.takePicture.bind(this);
-    this.translator = this.translator.bind(this);
-    this.displayAnswer = this.displayAnswer.bind(this);
+    
   }
   
   takePicture(camera)
@@ -61,7 +60,7 @@ export default class App extends Component {
   getJWTToken() {
     //const assertion = ""
     axios
-    .get("http://10.1.10.184:8081")
+    .get("http://192.168.1.126:8081")
     .then((response) => {
       const assertion = response.data
       console.log(response)
@@ -106,42 +105,13 @@ export default class App extends Component {
         this.setState({mlresults: response.data})
         
       })
-      .then(() => {
-        this.translator()
-        
-      })
       .catch((error) =>{
         console.log(error.response)
       })
       
   }
-  translator(){
-    console.log("translating")
-    this.state.mlresults.payload.map((element)=>{
-      console.log("anthing")
-      this.displayAnswer(element.displayName)
-      
-    })
-  }
-
   
-  displayAnswer(identifiedImage){
-    console.log("display answer");
-    
 
-    //return string so we don't have to use alert
-
-// Show an alert with the answer on
-     Alert.alert(
-        identifiedImage
-        //{ cancelable: false }
-    )
-
-    
-}
-
-
-  
   render() {
     return (
       <View style={styles.container}>
@@ -149,12 +119,19 @@ export default class App extends Component {
         <RNCamera ref={ref => {this.camera = ref;}} style={styles.preview}>
           <CameraButton onClick={() => {this.takePicture(this.camera)}}/>
         </RNCamera>
-        <Text>//display()//</Text>
+        <View>
+        {this.state.mlresults.payload.map((element)=>{
+          
+        {
+          <Text>{element.displayName}</Text>
+        }
+        })}</View>
+
       </View>
     );
   }
-}
 
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
