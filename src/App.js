@@ -61,7 +61,7 @@ export default class App extends Component {
   getJWTToken() {
     //const assertion = ""
     axios
-      .get("http://192.168.1.126:8081")
+      .get("http://10.1.10.184:8081")
       .then((response) => {
         const assertion = response.data
         console.log(response)
@@ -116,29 +116,45 @@ export default class App extends Component {
       })
   }
   speakResults() {
-    console.log("speak those results")
+    console.log("speak those results");
+    let ADN = [];
+    ADN = this.state.mlresults.payload.filter((element) =>
+      element.classification.score > 0.9);
+    console.log(ADN);  
     
-    this.setState({ADN:this.state.mlresults.payload.filter((element) =>
-      element.classification.score > 0.9})
-
-    if (ADN.length() >= 3) {
+    
+    
+      
       ADN.map((element) => {
-        Tts.speak(element)
+        console.log("this is ADN.map");
+        if (element.displayName != "Face" && element.displayName != "Black" && element.displayName != "Red" ){
+          console.log(element.displayName);
+          if (element.displayName == "J"){
+          Tts.speak("Jack")
+          }
+          else if ( element.displayName == "A"){
+            Tts.speak("Ace")
+          }
+          else if (element.displayName == "K"){
+            Tts.speak("King")
+          }
+          else if (element.displayName == "Q"){
+            Tts.speak("Queen")
+          }
+          else {
+            Tts.speak(element.displayName)
+          }
+        }  
       })
-    }
-    this.setState({ disName: ADN })
+    
 
-
+    
   }
 
 
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome} accessible={true}>
-          {this.state.disName((element) => {
-            { element }
-          })}</Text>
         <RNCamera ref={ref => { this.camera = ref; }} style={styles.preview}>
           <CameraButton onClick={() => { this.takePicture(this.camera) }} />
         </RNCamera>
